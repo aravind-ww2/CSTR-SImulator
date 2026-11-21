@@ -52,20 +52,22 @@ reaction_consumption = k * V * CA
 
 # Varying Q
 def simulate_flow_step(V, k, CA0, Q_old, Q_new, CA_initial, t_step, t_end):
-    # old flow rate
-    CA_initial = calculate_concentration(V, Q_old, CA0, k)
-    t1 = np.linspace(0, t_step, 200)
-    sol1 = solve_ivp(cstr_ode, (0, t_step), [CA_initial], t_eval=t1,
-                     args=(V, Q_old, CA0, k))
 
-    # new flow rate
-    t2 = np.linspace(t_step, t_end, 200)
-    sol2 = solve_ivp(cstr_ode, (t_step, t_end), [sol1.y[0][-1]], t_eval=t2,
-                     args=(V, Q_new, CA0, k))
+t1 = np.linspace(0, t_step, 200)
+sol1 = solve_ivp(
+    cstr_ode, (0, t_step), [CA_initial], t_eval=t1,
+    args=(V, Q_old, CA0, k), rtol=1e-8, atol=1e-10
+)
 
-    t = np.concatenate([sol1.t, sol2.t[1:]])
-    CA = np.concatenate([sol1.y[0], sol2.y[0][1:]])
-    return t, CA
+t2 = np.linspace(t_step, t_end, 200)
+sol2 = solve_ivp(
+    cstr_ode, (t_step, t_end), [sol1.y[0][-1]], t_eval=t2,
+    args=(V, Q_new, CA0, k), rtol=1e-8, atol=1e-10
+)
+
+t = np.concatenate([sol1.t, sol2.t[1:]])
+CA = np.concatenate([sol1.y[0], sol2.y[0][1:]])
+return t, CA
 
 
 # Flow rate step experiment
@@ -77,7 +79,7 @@ tau_new = V / (Q_new + k * V)
 t_step_ = 5 * tau_old
 t_end_ = t_step_ + 5 * tau_new
 t_Q, CA_Q = simulate_flow_step(V, k, CA0, Q_old, Q_new,
-                               CA_initial=0.0,
+                               CA_initial = CA_ss_old,
                                t_step=t_step_, t_end=t_end_)
 
 CA_ss_old = calculate_concentration(V, Q_old, CA0, k)
@@ -116,11 +118,13 @@ solution = solve_ivp(
     [0.0],
     t_eval=t_eval,
     args=(V, Q, CA0, k),
+    rtol=1e-8,
+    atol=1e-10,
 )
 
 # Flow rate analysis
 print("\n===== FLOW RATE ANALYSIS =====")
-flow_rates = [1, 2, 2.5, 5, 10, 20]
+flow_rates = [0.1*Q, 0.5*Q, Q, 2*Q, 5*Q, 10*Q]
 conversions = []
 for flow in flow_rates:
     CA_new = calculate_concentration(V, flow, CA0, k)
