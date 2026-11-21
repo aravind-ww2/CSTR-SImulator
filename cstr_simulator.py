@@ -53,21 +53,21 @@ reaction_consumption = k * V * CA
 # Varying Q
 def simulate_flow_step(V, k, CA0, Q_old, Q_new, CA_initial, t_step, t_end):
 
-t1 = np.linspace(0, t_step, 200)
-sol1 = solve_ivp(
-    cstr_ode, (0, t_step), [CA_initial], t_eval=t1,
-    args=(V, Q_old, CA0, k), rtol=1e-8, atol=1e-10
-)
+    t1 = np.linspace(0, t_step, 200)
+    sol1 = solve_ivp(
+        cstr_ode, (0, t_step), [CA_initial], t_eval=t1,
+        args=(V, Q_old, CA0, k), rtol=1e-8, atol=1e-10
+    )
 
-t2 = np.linspace(t_step, t_end, 200)
-sol2 = solve_ivp(
-    cstr_ode, (t_step, t_end), [sol1.y[0][-1]], t_eval=t2,
-    args=(V, Q_new, CA0, k), rtol=1e-8, atol=1e-10
-)
+    t2 = np.linspace(t_step, t_end, 200)
+    sol2 = solve_ivp(
+        cstr_ode, (t_step, t_end), [sol1.y[0][-1]], t_eval=t2,
+        args=(V, Q_new, CA0, k), rtol=1e-8, atol=1e-10
+    )
 
-t = np.concatenate([sol1.t, sol2.t[1:]])
-CA = np.concatenate([sol1.y[0], sol2.y[0][1:]])
-return t, CA
+    t = np.concatenate([sol1.t, sol2.t[1:]])
+    CA = np.concatenate([sol1.y[0], sol2.y[0][1:]])
+    return t, CA
 
 
 # Flow rate step experiment
@@ -78,12 +78,11 @@ tau_old = V / (Q + k * V)
 tau_new = V / (Q_new + k * V)
 t_step_ = 5 * tau_old
 t_end_ = t_step_ + 5 * tau_new
+CA_ss_old = calculate_concentration(V, Q_old, CA0, k)
+CA_ss_new = calculate_concentration(V, Q_new, CA0, k)
 t_Q, CA_Q = simulate_flow_step(V, k, CA0, Q_old, Q_new,
                                CA_initial = CA_ss_old,
                                t_step=t_step_, t_end=t_end_)
-
-CA_ss_old = calculate_concentration(V, Q_old, CA0, k)
-CA_ss_new = calculate_concentration(V, Q_new, CA0, k)
 # Accumulation: Q is different before and after the step
 Q_t = np.where(t_Q <= t_step_, Q_old, Q_new)
 inflow = Q_t * CA0
@@ -178,6 +177,12 @@ plt.ylabel("Accumulation (mol/min)")
 plt.title("CSTR: Accumulation During Flow Step")
 plt.legend()
 plt.grid(True)
+plt.tight_layout()
+plt.savefig("flow_step_accumulation.png", dpi=200)
+
+plt.show()
+
+
 plt.tight_layout()
 plt.savefig("flow_step_accumulation.png", dpi=200)
 
