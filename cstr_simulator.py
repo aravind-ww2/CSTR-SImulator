@@ -76,7 +76,7 @@ Q_new = get_positive_float("Enter NEW flow rate after step (L/min): ")
 
 tau_old = V / (Q + k * V)
 tau_new = V / (Q_new + k * V)
-t_step_ = 5 * tau_old
+t_step_ = 1 * tau_old
 t_end_ = t_step_ + 5 * tau_new
 CA_ss_old = calculate_concentration(V, Q_old, CA0, k)
 CA_ss_new = calculate_concentration(V, Q_new, CA0, k)
@@ -177,12 +177,6 @@ plt.ylabel("Accumulation (mol/min)")
 plt.title("CSTR: Accumulation During Flow Step")
 plt.legend()
 plt.grid(True)
-plt.tight_layout()
-plt.savefig("flow_step_accumulation.png", dpi=200)
-
-plt.show()
-
-
 plt.tight_layout()
 plt.savefig("flow_step_accumulation.png", dpi=200)
 
